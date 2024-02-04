@@ -6,51 +6,90 @@
 <title>Fare Calculator</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
 <script src="https://cdn.tailwindcss.com"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 </head>
 <body class="bg-gray-200">
 <div class="container mx-auto p-4">
         <h1 class="text-3xl font-bold text-center sm:text-2xl">Tuyok</h1>
-        <form method="POST" action="/" class="mt-4">  
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <label for="enter_destination" class="block text-gray-700 font-bold mb-2">
-            How far is your destination?
-        </label>
-        <input type="number" id="enter_destination" name="enter_destination" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline sm:w-3/4">
-        <div class="flex items-center">
+        <form id="fare-form" class="mt-4">
+    <div class="grid grid-cols-1 gap-4">
+         <!-- this is for the map -->
+         <div id="mapid" class="h-64 w-full flex justify-center"></div>
+    </div>
+        
+        <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+        <script>
+            var mymap = L.map('mapid').setView([7.07, 125.61], 13);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+            }).addTo(mymap);
+    
+            var markers = [];
+    
+            function onMapClick(e) {
+        if (markers.length >= 2) {
+            // If there are already 2 markers, remove them before adding a new one
+            markers.forEach(function (marker) {
+                mymap.removeLayer(marker);
+            });
+            markers = [];
+        }
+    
+        var marker = L.marker(e.latlng).addTo(mymap);
+        markers.push(marker);
+    
+        if (markers.length === 2) {
+            var distance = mymap.distance(markers[0].getLatLng(), markers[1].getLatLng());
+            document.getElementById('distance').value = (distance / 1000).toFixed(2); // Convert to kilometers and round to 2 decimal places
+        }
+    }
+    
+            mymap.on('click', onMapClick);
+    
+            $(document).ready(function(){
+                $("#fare-form").on('submit', function(event){
+                    event.preventDefault();
+                    $.ajax({
+                        url: '/calculate_fare',
+                        method: 'POST',
+                        data: $(this).serialize(),
+                        success: function(data){
+                            $("#fare-result").html(data.fare);
+                        }
+                    });
+                });
+            });
+        </script>
+       
+       <div class="flex justify-between items-center mt-4">
+        <div>
             <input type="checkbox" id="discount" name="discount">
+            <input type="hidden" id="distance" name="distance">
             <label for="discount" class="ml-2">Are you a student, PWD, or senior citizen?</label>
         </div>
-    </div>
         <button type="submit" name="calculate_fare" class="bg-orange-500 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded mt-4">Calculate Fare</button>
-        </form>
- 
-        <!-- this is for the map -->
-        <div id="mapid" class="h-64"></div>
-
-        {% if fare %}
-        <p class="text-orange-500 mt-4 text-center sm:text-lg">Your fare is: {{ fare }}</p>
-        {% endif %}
     </div>
-    
-    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-    <script>
-        var mymap = L.map('mapid').setView([51.505, -0.09], 13);
-    
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19,
-        }).addTo(mymap);
-    
-        var marker1 = L.marker([51.5, -0.09]).addTo(mymap);
-        var marker2 = L.marker([51.495, -0.083]).addTo(mymap);
-    
-        var latlngs = [
-            [51.5, -0.09],
-            [51.495, -0.083]
-        ];
-        var polyline = L.polyline(latlngs, {color: 'red'}).addTo(mymap);
-    
-        var distance = mymap.distance(latlngs[0], latlngs[1]);
-        alert("Distance between markers: " + distance + " meters");
-    </script>
+    </form>
+ 
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+        <p id="fare-result" class="text-orange-500 mt-4 text-center sm:text-lg"></p>
+        
+        <script>
+            $(document).ready(function(){
+                $("#fare-form").on('submit', function(event){
+                    event.preventDefault();
+                    $.ajax({
+                        url: '/calculate_fare',
+                        method: 'POST',
+                        data: $(this).serialize(),
+                        success: function(data){
+                            var fare = Math.ceil(parseFloat(data.fare.replace('Your fare is: ₱', '')));
+                            $("#fare-result").html('Your fare is: ₱' + fare);
+                        }
+                    });
+                });
+            });
+            </script>
     </body>
     </html>
