@@ -3,29 +3,30 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Fare Calculator</title>
+<title>Tuyok</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="/static/styles.css" />
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 </head>
-<body class="bg-gray-200">
-<div class="container mx-auto p-4">
-        <h1 class="text-3xl font-bold text-center sm:text-2xl">Tuyok</h1>
-        <form id="fare-form" class="mt-4">
-    <div class="grid grid-cols-1 gap-4">
+   
+<body>
+    <header class="navbar">
+        <h1 class="navbar">Tuyok</h1>
+        <p class="navbar">Fare Calculator Prototype</p>
+    </header>
+    <form id="fare-form">
          <!-- this is for the map -->
-         <div id="mapid" class="h-64 w-full flex justify-center"></div>
-    </div>
-        
+         <div id="mapid"></div>
+
         <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
         <script>
             var mymap = L.map('mapid').setView([7.07, 125.61], 13);
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 maxZoom: 19,
             }).addTo(mymap);
-    
+
             var markers = [];
-    
+
             function onMapClick(e) {
         if (markers.length >= 2) {
             // If there are already 2 markers, remove them before adding a new one
@@ -34,18 +35,18 @@
             });
             markers = [];
         }
-    
+
         var marker = L.marker(e.latlng).addTo(mymap);
         markers.push(marker);
-    
+
         if (markers.length === 2) {
             var distance = mymap.distance(markers[0].getLatLng(), markers[1].getLatLng());
             document.getElementById('distance').value = (distance / 1000).toFixed(2); // Convert to kilometers and round to 2 decimal places
         }
     }
-    
+
             mymap.on('click', onMapClick);
-    
+
             $(document).ready(function(){
                 $("#fare-form").on('submit', function(event){
                     event.preventDefault();
@@ -60,20 +61,19 @@
                 });
             });
         </script>
+       </div>
        
-       <div class="flex justify-between items-center mt-4">
-        <div>
-            <input type="checkbox" id="discount" name="discount">
-            <input type="hidden" id="distance" name="distance">
-            <label for="discount" class="ml-2">Are you a student, PWD, or senior citizen?</label>
-        </div>
-        <button type="submit" name="calculate_fare" class="bg-orange-500 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded mt-4">Calculate Fare</button>
-    </div>
+       <div class="discount">
+        <input type="checkbox" id="discount" name="discount">
+        <label for="discount"><span></span>Are you a student, PWD, or senior citizen?</label>
+        <input type="hidden" id="distance" name="distance">
+     </div>
+     <button type="submit" class="submit">Calculate Fare</button>
     </form>
- 
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 
-        <p id="fare-result" class="text-orange-500 mt-4 text-center sm:text-lg"></p>
+   
+
+    <p id="fare-result"></p>
         
         <script>
             $(document).ready(function(){
@@ -91,5 +91,6 @@
                 });
             });
             </script>
+            <script src="firebase.js" type="module"></script>
     </body>
     </html>

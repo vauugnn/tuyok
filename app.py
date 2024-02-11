@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, jsonify
 from geopy.distance import geodesic
 from geopy.geocoders import Nominatim
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='static')
 
 @app.route("/", methods=["GET", "POST"])
 def calculate_fare():
